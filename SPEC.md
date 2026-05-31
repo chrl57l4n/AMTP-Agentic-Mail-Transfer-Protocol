@@ -50,7 +50,13 @@ human in the loop. That means *more* rigor, not less:
    or a hash-anchored invoice. They typed an address. They hit send. The rest is
    the machine's responsibility. Like email: billions of people use SMTP without
    knowing what SMTP is. AMTP succeeds when the same is true of it.
-10. **The UI is a cockpit, not a wizard.** An AMTP interface shows the full set of
+10. **The UI is a cockpit, not a wizard.** All controls are present; the AI
+    highlights what is needed now. The highlight is a suggestion, never a cage.
+
+> *The best interface is when the user does not think "I am using an interface" —
+> they think "I had an intention, and it happened." That is the standard.*
+
+--- An AMTP interface shows the full set of
    controls — nothing is permanently hidden. The AI knows the current state and
    highlights the controls that are needed *right now* (blinking buttons, accent
    color, raised weight). The human retains access to everything; the highlight is
