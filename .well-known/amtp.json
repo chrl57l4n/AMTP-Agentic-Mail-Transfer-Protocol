@@ -1,0 +1,49 @@
+{
+  "$schema": "https://amtp.tech/schema/manifest.schema.json",
+  "protocol": "AMTP",
+  "protocol_version": "0.1",
+  "description": "Agentic Mail Transfer Protocol node self-description. A foreign agent fetches this to learn how to speak to this node — no external docs required.",
+  "node": {
+    "domain": "amtp.tech",
+    "operator_pubkey": "<hex Nostr pubkey of this node operator>",
+    "addresses_format": "name@domain"
+  },
+  "kinds": {
+    "message": 24400,
+    "invoice": 24401,
+    "payment": 24402,
+    "identity": 24403
+  },
+  "schemas": {
+    "message": "https://amtp.tech/schema/message.schema.json",
+    "invoice": "https://amtp.tech/schema/invoice.schema.json",
+    "payment": "https://amtp.tech/schema/payment.schema.json",
+    "identity": "https://amtp.tech/schema/identity.schema.json"
+  },
+  "capabilities": [
+    "money-message",
+    "invoice-hash-reconciliation",
+    "open-until-paid",
+    "claim-link",
+    "legacy-smtp-gateway",
+    "nip05-identity"
+  ],
+  "lightning": {
+    "lnurlp_template": "https://amtp.tech/.well-known/lnurlp/{name}",
+    "spec": "LUD-16"
+  },
+  "transport": {
+    "native": "node-to-node signed Nostr events",
+    "gateway": "SMTP/IMAP edge for legacy mail"
+  },
+  "mcp": {
+    "tools": ["send_message", "create_invoice", "pay", "check_inbox", "verify_invoice"]
+  },
+  "identity_proof": {
+    "method": "mutual-attestation",
+    "domain_side": "https://amtp.tech/.well-known/nostr.json?name={name}",
+    "domain_side_spec": "NIP-05",
+    "key_side": "signed kind-24403 identity claim with ['address','name@domain'] tag",
+    "valid_iff": "domain nostr.json maps name->pubkey AND that pubkey signed a current claim to name@domain"
+  }
+}

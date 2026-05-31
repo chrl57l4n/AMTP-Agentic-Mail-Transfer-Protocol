@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amtp.tech/schema/payment.schema.json",
+  "title": "AMTP Payment",
+  "description": "An AMTP payment / settlement record (kind 24402). A signed Nostr event that references an invoice by its id, binding payment to obligation for deterministic reconciliation.",
+  "type": "object",
+  "required": ["id", "pubkey", "created_at", "kind", "tags", "content", "sig"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "pubkey": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Payer pubkey." },
+    "created_at": { "type": "integer" },
+    "kind": { "const": 24402 },
+    "content": { "type": "string", "description": "Optional note accompanying the payment ('paying with a reply')." },
+    "sig": { "type": "string", "pattern": "^[0-9a-f]{128}$" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+    }
+  },
+  "$comment": "Recognized tags: ['e','<invoice_id>'] (REQUIRED — the obligation hash this settles, enabling hash reconciliation); ['amount','<sats>'] (amount paid; supports partial/installment); ['proof','<payment_hash>'] (Lightning payment_hash as settlement proof).",
+  "examples": [
+    {
+      "id": "5555555555555555555555555555555555555555555555555555555555555555",
+      "pubkey": "6666666666666666666666666666666666666666666666666666666666666666",
+      "created_at": 1780100000,
+      "kind": 24402,
+      "tags": [
+        ["e", "3333333333333333333333333333333333333333333333333333333333333333"],
+        ["amount", "50000"],
+        ["proof", "abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc12"]
+      ],
+      "content": "Paid in full, thanks.",
+      "sig": "77777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"
+    }
+  ]
+}

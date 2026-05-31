@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amtp.tech/schema/invoice.schema.json",
+  "title": "AMTP Invoice",
+  "description": "An AMTP invoice (kind 24401). A signed Nostr event whose id IS the stable obligation anchor. The BOLT11 is minted just-in-time against this id, never embedded raw.",
+  "type": "object",
+  "required": ["id", "pubkey", "created_at", "kind", "tags", "content", "sig"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "The obligation hash. Stable for weeks. Payments reference this."
+    },
+    "pubkey": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Issuer (payee) pubkey." },
+    "created_at": { "type": "integer" },
+    "kind": { "const": 24401 },
+    "content": { "type": "string", "description": "Human-readable invoice memo / line items." },
+    "sig": { "type": "string", "pattern": "^[0-9a-f]{128}$" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+    }
+  },
+  "$comment": "Recognized tags: ['to','name@domain'] (debtor); ['amount','<sats>'] (0 or omitted = open amount); ['status','open'|'paid'|'partial'|'void']; ['expiry','<unix>'] (obligation window, NOT the BOLT11 expiry; omit = open-until-paid); ['pay','<lnurl-pay|bolt12-offer|service-url>'] (stable reference that mints a fresh BOLT11 on demand — never a raw BOLT11).",
+  "examples": [
+    {
+      "id": "3333333333333333333333333333333333333333333333333333333333333333",
+      "pubkey": "1111111111111111111111111111111111111111111111111111111111111111",
+      "created_at": 1780000000,
+      "kind": 24401,
+      "tags": [
+        ["to", "client@example.com"],
+        ["amount", "50000"],
+        ["status", "open"],
+        ["expiry", "1782592000"],
+        ["pay", "lnurl1dp68gurn8ghj7..."]
+      ],
+      "content": "Invoice #2026-001 — consulting, 1h",
+      "sig": "44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444"
+    }
+  ]
+}

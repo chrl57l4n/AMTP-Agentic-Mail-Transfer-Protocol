@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amtp.tech/schema/message.schema.json",
+  "title": "AMTP Message",
+  "description": "An AMTP message (kind 24400). A signed Nostr event. A money-message is this object carrying a 'money' tag.",
+  "type": "object",
+  "required": ["id", "pubkey", "created_at", "kind", "tags", "content", "sig"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "sha256 of the serialized event — content-addressed, tamper-evident."
+    },
+    "pubkey": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Sender Nostr public key (hex). The 'who'."
+    },
+    "created_at": { "type": "integer", "description": "Unix timestamp (seconds)." },
+    "kind": { "const": 24400 },
+    "content": { "type": "string", "description": "Message body (plain text)." },
+    "sig": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{128}$",
+      "description": "Schnorr signature over id."
+    },
+    "tags": {
+      "type": "array",
+      "description": "Array of tag arrays. Recognized AMTP tags below; unknown tags MUST be ignored.",
+      "items": {
+        "type": "array",
+        "items": { "type": "string" },
+        "minItems": 1
+      }
+    }
+  },
+  "$comment": "Recognized tags: ['to','name@domain'] (recipient address, required); ['subject','...']; ['money','<sats>'] (presence makes this a money-message); ['claim','<lnurl-withdraw>'] (for non-Lightning recipients); ['proof','<payment_hash>'] (settlement proof if paid inline).",
+  "examples": [
+    {
+      "id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "pubkey": "1111111111111111111111111111111111111111111111111111111111111111",
+      "created_at": 1780000000,
+      "kind": 24400,
+      "tags": [
+        ["to", "christian@amtp.tech"],
+        ["subject", "hello + a tip"],
+        ["money", "2100"]
+      ],
+      "content": "Thanks for today. Here are 2100 sats.",
+      "sig": "22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222"
+    }
+  ]
+}
