@@ -47,6 +47,49 @@ combination is the invention.
 | Payment    | Lightning            | **how it settles** |
 | Transport  | email + native relay | **how it moves** |
 
+### 1.1 Time — anchored to the chain, not the clock
+
+AMTP time is **two witnesses that must agree**: the self-asserted Unix clock and
+the Bitcoin chain. Either alone is weak — `created_at` is forgeable, and a block
+height is shared by every message in its ~10-minute window (it anchors, it does
+not fingerprint). Together they cross-check each other.
+
+- **Unix (`created_at`)** — Nostr's required integer. Gives fine-grained ordering
+  and precision *within* a block window.
+- **Block (`["block", "<height>", "<blockhash>"]`)** — names the most recent block
+  known to the sender at signing. Because a block's hash is unpredictable until
+  that block is mined, a valid `(height, hash)` pair is a **trustless anchor**: the
+  event provably could not have been created before that block existed. No server,
+  no NTP, nothing to revoke.
+
+Every AMTP event SHOULD carry the `block` tag. The ~10-minute interval is no
+problem: mail carries no real-time SLA.
+
+**Verification — both must hold.** The time is consistent iff `created_at` falls
+inside the cited block's window:
+
+1. `created_at` ≥ the cited block's timestamp (you cannot have seen a block before
+   it existed), **and**
+2. `created_at` − that block's timestamp ≤ a tolerance window (the cited block is
+   genuinely the recent one, not a stale block paired with a fresh clock).
+
+If the two disagree — a `created_at` that predates its block, or a stale block
+under a fresh `created_at` — the event is suspect and SHOULD be rejected. Neither
+witness alone is trusted; the agreement is the proof.
+
+> *The tolerance window is a draft parameter (a few block intervals to absorb
+> propagation and inter-block variance) — see Open questions.*
+
+**Upper bound (MAY, for obligations).** A lower bound alone permits backdating
+(citing an old block). Where the upper bound matters — invoices, obligations — a
+node MAY anchor the event `id` *into* the chain via
+[OpenTimestamps](https://opentimestamps.org), so a later block proves the event
+existed by then. This is optional and confirmation-bound; it is overkill for
+ordinary messages.
+
+This gives AMTP three sovereign anchors, all trustless: **who** (Nostr key),
+**when** (Bitcoin block), **how it settles** (Lightning).
+
 ---
 
 ## 2. Identity
@@ -114,6 +157,45 @@ domain it does not control.
 **Lightning binding (SHOULD).** The same `name` resolves at LUD-16
 (`/.well-known/lnurlp/<name>`). A node SHOULD ensure that endpoint pays a wallet
 controlled by the same identity, so address, key, and wallet are one party.
+
+### 3.2 Wallet binding — sovereign by construction
+
+A node does not "have a Lightning balance" in the protocol; it **binds** to a
+wallet backend at setup time. AMTP defines the *interface* a bound wallet must
+expose, never the backend. This deliberately pushes the Lightning liquidity
+problem (channels, inbound/outbound capacity, routing) **out** of the protocol
+and into the binding — where it belongs.
+
+**The native binding is mandatory and self-owned.** A conforming node MUST expose
+its own LUD-16 address in email format, `name@domain`, served from a wallet the
+node operator controls. This address — not any foreign one — is the node's
+identity on the value side. It is governed by no one but the operator:
+
+- Channel/liquidity sourcing is an operator choice *behind* the address and is
+  invisible to the protocol. Equally valid: an LSP (e.g. phoenixd/ACINQ opens
+  channels automatically), a self-run node (LND/CLN, operator manages channels),
+  or a custodial wallet exposed under the operator's own domain.
+- Because the address lives in the operator's own namespace, the wallet can be
+  re-bound to a different backend later without changing the AMTP identity.
+
+**Why a foreign protocol must not be merged in.** A binding that made an external
+service authoritative for the node's address would let that service change terms,
+revoke, or impose rules the operator never agreed to — re-creating the exact
+deplatforming dependency AMTP exists to escape. Therefore AMTP MUST NOT fuse with
+or subordinate itself to another protocol's authority. Interoperate at the edge;
+never cede the namespace.
+
+**External Lightning addresses (MAY, via wrapping).** A node MAY support paying
+*to* a real foreign Lightning address (e.g. `user@some-wallet.com`). But it is
+NOT bound as native identity. The defined mechanism is **wrapping**: the foreign
+address is proxied behind an AMTP `name@domain` in the node's own namespace; the
+node resolves the wrapper, then forwards settlement to the underlying foreign
+LUD-16 endpoint. The AMTP-visible handle stays sovereign; the foreign endpoint is
+an implementation detail of that one wrapper.
+
+> *The wrapping resolution format (how a node advertises that a given
+> `name@domain` is a wrapper and what it points at) is an open mechanism, not yet
+> normative — see Open questions.*
 
 ## 4. Message types (kinds)
 
@@ -197,6 +279,10 @@ A conforming implementation MUST:
 - represent all objects as valid signed Nostr events;
 - validate against the schemas in [`schema/`](schema/);
 - serve a `.well-known/amtp.json` matching [`.well-known/amtp.json`](.well-known/amtp.json);
+- expose its own LUD-16 address `name@domain` in the operator's own namespace,
+  bound to an operator-controlled wallet backend (§3.2) — the liquidity source
+  behind it is unconstrained;
+- MUST NOT subordinate that namespace to a foreign protocol's authority (§3.2);
 - pass the conformance test vectors (TODO: `conformance/`).
 
 ---
@@ -207,3 +293,7 @@ A conforming implementation MUST:
 - License choice (MIT / CC0 / custom open).
 - Encryption at rest / in transit for native node-to-node (NIP-44?).
 - Conformance vector format.
+- Wrapping resolution format (§3.2): how a node advertises that a `name@domain`
+  is a wrapper for a foreign Lightning address, and how settlement is forwarded.
+- Time-anchor tolerance window (§1.1): how far `created_at` may sit past its cited
+  block timestamp before the two-witness check rejects the event.

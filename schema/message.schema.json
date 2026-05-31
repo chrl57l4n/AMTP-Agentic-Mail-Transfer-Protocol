@@ -34,7 +34,7 @@
       }
     }
   },
-  "$comment": "Recognized tags: ['to','name@domain'] (recipient address, required); ['subject','...']; ['money','<sats>'] (presence makes this a money-message); ['claim','<lnurl-withdraw>'] (for non-Lightning recipients); ['proof','<payment_hash>'] (settlement proof if paid inline).",
+  "$comment": "Recognized tags: ['to','name@domain'] (recipient address, required); ['subject','...']; ['block','<height>','<blockhash>'] (Bitcoin block-height time anchor — trustless lower bound on when, SHOULD be present, supersedes created_at); ['money','<sats>'] (presence makes this a money-message); ['claim','<lnurl-withdraw>'] (for non-Lightning recipients); ['proof','<payment_hash>'] (settlement proof if paid inline).",
   "examples": [
     {
       "id": "0000000000000000000000000000000000000000000000000000000000000000",
@@ -44,6 +44,7 @@
       "tags": [
         ["to", "christian@amtp.tech"],
         ["subject", "hello + a tip"],
+        ["block", "951874", "00000000000000000000c1e44ef2caea1d33f8fa33635c62d71266333dfceade"],
         ["money", "2100"]
       ],
       "content": "Thanks for today. Here are 2100 sats.",

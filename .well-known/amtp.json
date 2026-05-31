@@ -26,11 +26,28 @@
     "open-until-paid",
     "claim-link",
     "legacy-smtp-gateway",
-    "nip05-identity"
+    "nip05-identity",
+    "sovereign-wallet-binding",
+    "external-address-wrapping",
+    "blockheight-time-anchor",
+    "opentimestamps-obligation-anchor"
   ],
+  "time": {
+    "model": "two-witness — created_at AND bitcoin block must agree",
+    "anchor": "bitcoin-block-height",
+    "tag": "['block','<height>','<blockhash>']",
+    "verify": "created_at >= cited block timestamp AND created_at - block timestamp <= tolerance window; reject on disagreement",
+    "upper_bound": "OpenTimestamps anchoring of event id (MAY, for obligations)"
+  },
   "lightning": {
     "lnurlp_template": "https://amtp.tech/.well-known/lnurlp/{name}",
-    "spec": "LUD-16"
+    "spec": "LUD-16",
+    "wallet_binding": {
+      "native_required": "own LUD-16 name@domain in operator's namespace, operator-controlled backend",
+      "backend": "operator choice — LSP / self-run node / custodial; liquidity sourcing is out of protocol scope",
+      "foreign_addresses": "MAY be supported only via wrapping behind an AMTP name@domain; never bound as native identity",
+      "rule": "the value-side namespace MUST NOT be subordinated to a foreign protocol's authority"
+    }
   },
   "transport": {
     "native": "node-to-node signed Nostr events",
