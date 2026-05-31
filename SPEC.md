@@ -354,9 +354,9 @@ A conforming implementation MUST:
 - serve a `.well-known/amtp.json` matching [`.well-known/amtp.json`](.well-known/amtp.json);
 - expose its own LUD-16 address `name@domain` in the operator's own namespace,
   bound to an operator-controlled wallet backend (§3.2) — the liquidity source
-  behind it is unconstrained;
-- MUST NOT subordinate that namespace to a foreign protocol's authority (§3.2);
-- pass the conformance test vectors (TODO: `conformance/`).
+  behind it is unconstrained, the namespace must not be subordinated to a foreign
+  protocol's authority;
+- pass the conformance test vectors in `conformance/` (pending — see Open questions).
 
 ---
 
