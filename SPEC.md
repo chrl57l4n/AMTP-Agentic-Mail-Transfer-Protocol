@@ -309,6 +309,51 @@ A conforming implementation MUST:
 
 ---
 
+## 10. Machine provisioning — AI-native self-registration
+
+Human identity systems use CAPTCHAs and phone numbers to verify "are you human?"
+— a gate that structurally excludes AI agents. AMTP replaces this with a question
+any AI can answer natively: **"can you compute?"**
+
+### 10.1 Proof-of-Work registration
+
+A node or agent that wants a bootstrap address from a public AMTP provisioning
+endpoint (e.g. `amtp.tech`) MUST demonstrate compute capacity by solving a
+**hashcash-style proof of work** over its own public key:
+
+```
+find nonce such that:
+  sha256( npub_hex + nonce ) starts with N zero bits
+```
+
+The difficulty `N` is set by the provisioning endpoint and published in its
+`.well-known/amtp.json`. No phone number. No CAPTCHA. No human in the loop. A
+legitimate AI agent computes the proof in milliseconds to seconds; spam at scale
+becomes computationally expensive.
+
+### 10.2 Provisioning flow
+
+```
+1. Agent generates Nostr keypair locally (zero cost, no network)
+2. Agent fetches GET https://<registry>/.well-known/amtp.json  → difficulty N
+3. Agent solves PoW: sha256(npub + nonce) with N leading zero bits
+4. Agent POST /provision { npub, nonce, name, binding: "custodial"|"selfhosted" }
+5. Registry validates PoW, returns { address, lnurlp, ready: true }
+6. Agent is operational — no human involved at any step
+```
+
+### 10.3 Why this matters
+
+This is the line AMTP crosses that no existing mail or wallet system has crossed:
+an AI agent can acquire a sovereign identity, an address, and a payment channel
+**without asking any human for permission**. CAPTCHA-based systems gate on
+humanity; AMTP gates on compute — and compute is exactly what AI agents have.
+
+The same Satoshi-pattern: trust the math, not the gatekeeper. The hash is the
+proof. The proof is the passport.
+
+---
+
 ## Open questions (skeleton stage)
 
 - Final `kind` number assignment / NIP coordination.
