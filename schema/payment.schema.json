@@ -14,7 +14,16 @@
     "sig": { "type": "string", "pattern": "^[0-9a-f]{128}$" },
     "tags": {
       "type": "array",
-      "items": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      "items": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+      "contains": {
+        "type": "array",
+        "minItems": 2,
+        "prefixItems": [
+          { "const": "e" },
+          { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        ]
+      },
+      "$comment": "MUST contain at least one ['e','<invoice_id>'] tag — the obligation this payment settles."
     }
   },
   "$comment": "Recognized tags: ['e','<invoice_id>'] (REQUIRED — the obligation hash this settles, enabling hash reconciliation); ['amount','<sats>'] (amount paid; supports partial/installment); ['proof','<payment_hash>'] (Lightning payment_hash as settlement proof).",

@@ -26,7 +26,7 @@ human in the loop. That means *more* rigor, not less:
    protocol version, supported kinds, capabilities, and endpoints — no external
    docs required.
 3. **Typed, structured messages.** No free-text blobs. Every message is a typed,
-   self-describing object (message / money-message / invoice / payment / receipt).
+   self-describing object (message / money-message / invoice / payment / identity claim).
 4. **MCP as a first-class binding.** A canonical MCP server exposes the protocol
    as tools (§7). Any MCP-capable agent speaks AMTP with zero glue.
 5. **Reference + conformance.** A reference node plus conformance test vectors
@@ -415,6 +415,11 @@ proof. The proof is the passport.
 - **Conformance vector format**: format TBD; location `conformance/` is reserved.
 - **Wrapping resolution (§3.2)**: how a node signals that a `name@domain` is a
   proxy for a foreign Lightning address and how settlement is forwarded.
+- **Multi-reference disambiguation (§5)**: when one event carries more than one
+  `["e", ...]` tag — e.g. a reply that both threads under its conversation parent
+  and settles an invoice — how the threading reference and the settlement
+  reference are distinguished. NIP-10 markers (`root` / `reply`) on the threading
+  tag, leaving the bare `e` as the settlement reference, are the likely path.
 - **Time-anchor tolerance window (§1.1)**: how many block intervals past the cited
   block's timestamp is `created_at` still acceptable before rejection.
 - **PoW difficulty curve (§10)**: how difficulty `N` should scale with spam

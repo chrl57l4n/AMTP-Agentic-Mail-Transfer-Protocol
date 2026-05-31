@@ -31,10 +31,19 @@
         "type": "array",
         "items": { "type": "string" },
         "minItems": 1
-      }
+      },
+      "contains": {
+        "type": "array",
+        "minItems": 2,
+        "prefixItems": [
+          { "const": "to" },
+          { "type": "string", "pattern": "^[^@\\s]+@[^@\\s]+$" }
+        ]
+      },
+      "$comment": "MUST contain at least one ['to','name@domain'] recipient tag."
     }
   },
-  "$comment": "Recognized tags: ['to','name@domain'] (recipient address, required); ['subject','...']; ['block','<height>','<blockhash>'] (Bitcoin block-height time anchor — trustless lower bound on when, SHOULD be present, supersedes created_at); ['money','<sats>'] (presence makes this a money-message); ['claim','<lnurl-withdraw>'] (for non-Lightning recipients); ['proof','<payment_hash>'] (settlement proof if paid inline).",
+  "$comment": "Recognized tags: ['to','name@domain'] (recipient address, required); ['subject','...']; ['e','<parent_event_id>'] (threading — references the parent event in the conversation, per SPEC 5); ['block','<height>','<blockhash>'] (Bitcoin block-height time anchor — trustless lower bound on when, SHOULD be present, supersedes created_at); ['money','<sats>'] (presence makes this a money-message); ['claim','<lnurl-withdraw>'] (for non-Lightning recipients); ['proof','<payment_hash>'] (settlement proof if paid inline).",
   "examples": [
     {
       "id": "0000000000000000000000000000000000000000000000000000000000000000",

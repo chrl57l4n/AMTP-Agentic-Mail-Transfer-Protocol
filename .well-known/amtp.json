@@ -30,7 +30,8 @@
     "sovereign-wallet-binding",
     "external-address-wrapping",
     "blockheight-time-anchor",
-    "opentimestamps-obligation-anchor"
+    "opentimestamps-obligation-anchor",
+    "proof-of-work-provisioning"
   ],
   "time": {
     "model": "two-witness — created_at AND bitcoin block must agree",
@@ -54,7 +55,26 @@
     "gateway": "SMTP/IMAP edge for legacy mail"
   },
   "mcp": {
-    "tools": ["send_message", "create_invoice", "pay", "check_inbox", "verify_invoice"]
+    "tools": ["send_message", "create_invoice", "pay", "check_inbox", "verify_invoice", "get_identity"]
+  },
+  "provisioning": {
+    "method": "proof-of-work",
+    "algorithm": "hashcash-sha256",
+    "challenge": "sha256(npub_hex + nonce) has N leading zero bits",
+    "difficulty_bits": 20,
+    "endpoint": "https://amtp.tech/provision",
+    "request": {
+      "npub": "<hex pubkey>",
+      "nonce": "<string that solves the challenge>",
+      "name": "<desired local-part>",
+      "binding": "custodial | selfhosted"
+    },
+    "response": {
+      "address": "name@domain",
+      "lnurlp": "https://domain/.well-known/lnurlp/name",
+      "ready": true
+    },
+    "human_required": false
   },
   "identity_proof": {
     "method": "mutual-attestation",
