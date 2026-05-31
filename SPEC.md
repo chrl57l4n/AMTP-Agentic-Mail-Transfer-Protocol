@@ -32,6 +32,10 @@ human in the loop. That means *more* rigor, not less:
 5. **Reference + conformance.** A reference node plus conformance test vectors
    make "every agent implements it the same way" verifiable, not hopeful.
 6. **Versioning + capability negotiation** from day one (§8).
+7. **Freedom of choice is a protocol primitive.** No backend is mandated, no
+   infrastructure is required, no authority decides for the operator. A conforming
+   installer presents the choice explicitly and enforces nothing. Sovereignty means
+   the individual decides — not the protocol, not the vendor, not the developer.
 
 ---
 
@@ -194,6 +198,19 @@ external service authoritative over the node's *namespace* would let that servic
 revoke, change terms, or impose rules — re-creating the deplatforming dependency
 AMTP exists to escape. Therefore the *namespace* MUST remain under the operator's
 control; the wallet backend behind it may be anything.
+
+**The choice is yours — always.** AMTP forces no path. A conforming installer
+MUST present the operator with an explicit choice at setup time:
+
+1. **Self-hosted** — enter your own Lightning node / LNbits / phoenixd credentials.
+   Your infrastructure, your keys, your liquidity.
+2. **Custodial** — enter a company-hosted Lightning address (Wallet of Satoshi,
+   Alby, Strike, or any LUD-16 provider). No infrastructure required.
+
+No default is imposed. The choice is the operator's — a sovereign individual
+deciding for themselves how much of the stack they want to own. This is not a
+convenience feature; it is a statement of principle: freedom of choice is a
+protocol primitive. AMTP is democracy in software form.
 
 **Wrapping (MAY).** A node MAY proxy a foreign Lightning address behind its own
 `name@domain`: resolve the wrapper locally, forward settlement to the underlying
