@@ -41,3 +41,7 @@ there is no shared, infectable surface. AMTP is free forever.
 
 Sibling to the Universal Memory Protocol and CAIP — same Satoshi-pattern: don't
 build a company, build a protocol and release it.
+
+---
+
+*Why we build this: [`GENESIS.md`](GENESIS.md).*
