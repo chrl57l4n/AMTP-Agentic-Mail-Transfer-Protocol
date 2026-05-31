@@ -44,7 +44,13 @@ human in the loop. That means *more* rigor, not less:
    with a single actionable question. A chain of questions is a failure mode, not
    a feature. The user's attention is precious; spend it only when the machine
    genuinely cannot proceed alone.
-9. **The UI is a cockpit, not a wizard.** An AMTP interface shows the full set of
+9. **The protocol is invisible to the end user.** The highest measure of a
+   conforming implementation is that an ordinary person can send a message with
+   value attached — and never know they used a Lightning wallet, a Nostr keypair,
+   or a hash-anchored invoice. They typed an address. They hit send. The rest is
+   the machine's responsibility. Like email: billions of people use SMTP without
+   knowing what SMTP is. AMTP succeeds when the same is true of it.
+10. **The UI is a cockpit, not a wizard.** An AMTP interface shows the full set of
    controls — nothing is permanently hidden. The AI knows the current state and
    highlights the controls that are needed *right now* (blinking buttons, accent
    color, raised weight). The human retains access to everything; the highlight is
