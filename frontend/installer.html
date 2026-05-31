@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMTP Node Setup</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --border:    #30363d;
+      --accent:    #f7931a;
+      --accent-dim:#7d4a0d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --success:   #3fb950;
+      --radius:    10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .shell {
+      display: flex;
+      width: 100%;
+      max-width: 900px;
+      min-height: 560px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,.6);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      padding: 32px 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo {
+      padding: 0 24px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-mark {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -.5px;
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: .4px;
+      margin-top: 3px;
+    }
+
+    .steps {
+      list-style: none;
+      padding: 20px 0;
+      flex: 1;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 24px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: default;
+      transition: color .15s;
+    }
+
+    .step-item.active {
+      color: var(--text);
+    }
+
+    .step-item.done {
+      color: var(--success);
+    }
+
+    .step-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+      transition: all .2s;
+    }
+
+    .step-item.active .step-dot {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .step-item.done .step-dot {
+      background: var(--success);
+      border-color: var(--success);
+      color: #000;
+    }
+
+    .step-item.done .step-dot::after { content: "✓"; }
+
+    /* ── Main content ── */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 40px 48px;
+      overflow-y: auto;
+    }
+
+    .step-panel { display: none; flex-direction: column; gap: 20px; flex: 1; }
+    .step-panel.active { display: flex; }
+
+    .step-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .step-desc {
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 560px;
+    }
+
+    /* ── Form elements ── */
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 6px;
+    }
+
+    input[type=text], input[type=password], select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    input[type=text]:focus, input[type=password]:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    select option { background: var(--bg); }
+
+    .field { display: flex; flex-direction: column; gap: 0; }
+    .field + .field { margin-top: 16px; }
+
+    .addr-preview {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 14px;
+      color: var(--accent);
+      min-height: 40px;
+    }
+
+    /* ── Choice cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card:hover { border-color: var(--accent-dim); }
+
+    .card.selected {
+      border-color: var(--accent);
+      background: rgba(247,147,26,.06);
+    }
+
+    .card-icon { font-size: 26px; }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .sub-form {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 4px;
+    }
+
+    .sub-form.visible { display: flex; }
+
+    /* ── Keypair box ── */
+    .keypair-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .kv { display: flex; gap: 10px; align-items: flex-start; }
+    .kv-key { color: var(--muted); min-width: 50px; flex-shrink: 0; }
+    .kv-val { color: var(--accent); word-break: break-all; }
+
+    .btn-ghost {
+      align-self: flex-start;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+
+    .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Review ── */
+    .review-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .review-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .review-check {
+      color: var(--success);
+      font-size: 16px;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .review-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      margin-bottom: 3px;
+    }
+
+    .review-value {
+      font-size: 14px;
+      font-family: monospace;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    /* ── Done ── */
+    .done-icon {
+      font-size: 48px;
+      text-align: center;
+    }
+
+    .done-title {
+      font-size: 24px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .done-desc {
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .genesis-quote {
+      border-left: 3px solid var(--accent);
+      padding: 12px 16px;
+      color: var(--muted);
+      font-style: italic;
+      font-size: 13px;
+      line-height: 1.6;
+      background: var(--bg);
+      border-radius: 0 6px 6px 0;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding-top: 24px;
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s;
+    }
+
+    .btn:hover { opacity: .85; }
+
+    .btn-back {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-next {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-install {
+      background: var(--success);
+      color: #000;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">AMTP</div>
+      <div class="logo-sub">NODE SETUP</div>
+    </div>
+    <ul class="steps" id="stepList">
+      <li class="step-item active" data-step="0"><span class="step-dot">1</span> Welcome</li>
+      <li class="step-item"        data-step="1"><span class="step-dot">2</span> Identity</li>
+      <li class="step-item"        data-step="2"><span class="step-dot">3</span> Address</li>
+      <li class="step-item"        data-step="3"><span class="step-dot">4</span> Lightning</li>
+      <li class="step-item"        data-step="4"><span class="step-dot">5</span> Review</li>
+    </ul>
+  </aside>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- Step 0: Welcome -->
+    <div class="step-panel active" id="panel-0">
+      <div class="step-title">Welcome to AMTP</div>
+      <div class="step-desc">
+        You are about to set up your own <strong>Agentic Mail Transfer Protocol</strong> node.
+        One address — both a mailbox and a Lightning wallet. Your identity is a key nobody
+        issued and nobody can revoke.
+      </div>
+      <div class="genesis-quote">
+        "An identity no gatekeeper can switch off; a message that carries its own worth."
+      </div>
+      <div class="step-desc">
+        This wizard will guide you through four decisions. Each one belongs to you.
+        No defaults are imposed.
+      </div>
+      <div style="flex:1"></div>
+      <div class="nav">
+        <button class="btn btn-next" onclick="go(1)">Get Started →</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Identity -->
+    <div class="step-panel" id="panel-1">
+      <div class="step-title">Identity</div>
+      <div class="step-desc">
+        Your AMTP identity is a Nostr keypair — self-issued, not granted by anyone.
+        Generate a fresh keypair now, or paste an existing one.
+      </div>
+      <div class="keypair-box" id="keypairBox">
+        <div class="kv"><span class="kv-key">npub</span><span class="kv-val" id="npubVal">—</span></div>
+        <div class="kv"><span class="kv-key">nsec</span><span class="kv-val" id="nsecVal">—</span></div>
+      </div>
+      <button class="btn-ghost" onclick="generateKeypair()">⟳ Generate new keypair</button>
+      <div class="field" style="margin-top:8px">
+        <label>Or paste existing nsec</label>
+        <input type="password" id="nsecInput" placeholder="nsec1…" oninput="importNsec(this.value)">
+        <span class="hint">Your secret key never leaves this page.</span>
+      </div>
+      <div style="flex:1"></div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="go(0)">← Back</button>
+        <button class="btn btn-next" onclick="go(2)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Address -->
+    <div class="step-panel" id="panel-2">
+      <div class="step-title">Your Address</div>
+      <div class="step-desc">
+        Your AMTP address is <code>name@domain</code> — a single handle that is both
+        your email address and your Lightning address.
+      </div>
+      <div class="field">
+        <label>Name (local part)</label>
+        <input type="text" id="addrName" placeholder="motoko" oninput="updatePreview()">
+      </div>
+      <div class="field">
+        <label>Domain</label>
+        <input type="text" id="addrDomain" placeholder="amtp.tech" oninput="updatePreview()">
+      </div>
+      <div class="addr-preview" id="addrPreview">—</div>
+      <div style="flex:1"></div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="go(1)">← Back</button>
+        <button class="btn btn-next" onclick="go(3)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Lightning -->
+    <div class="step-panel" id="panel-3">
+      <div class="step-title">Lightning Binding</div>
+      <div class="step-desc">
+        Choose how your address settles payments. This is your decision — no path is
+        imposed.
+      </div>
+
+      <div class="cards">
+        <div class="card" id="card-selfhosted" onclick="selectLightning('selfhosted')">
+          <div class="card-icon">⚡</div>
+          <div class="card-title">Self-hosted</div>
+          <div class="card-desc">Your own LNbits, phoenixd, LND, or CLN.
+          Full sovereignty — your keys, your node, your liquidity.</div>
+        </div>
+        <div class="card" id="card-custodial" onclick="selectLightning('custodial')">
+          <div class="card-icon">🏦</div>
+          <div class="card-title">Custodial</div>
+          <div class="card-desc">Wallet of Satoshi, Alby, Strike, or any LUD-16
+          address. No channels, no node, works immediately.</div>
+        </div>
+      </div>
+
+      <!-- Self-hosted sub-form -->
+      <div class="sub-form" id="form-selfhosted">
+        <div class="field" style="margin-top:16px">
+          <label>Backend</label>
+          <select id="lnBackend">
+            <option value="lnbits">LNbits</option>
+            <option value="phoenixd">phoenixd</option>
+            <option value="lnd">LND (REST)</option>
+            <option value="cln">Core Lightning (REST)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Node URL</label>
+          <input type="text" id="lnUrl" placeholder="http://localhost:5000">
+        </div>
+        <div class="field">
+          <label>Admin / Macaroon key</label>
+          <input type="password" id="lnKey" placeholder="••••••••">
+          <span class="hint">Stored locally. Never transmitted.</span>
+        </div>
+      </div>
+
+      <!-- Custodial sub-form -->
+      <div class="sub-form" id="form-custodial">
+        <div class="field" style="margin-top:16px">
+          <label>Lightning Address</label>
+          <input type="text" id="custodialAddr" placeholder="you@walletofsatoshi.com" oninput="updatePreview()">
+          <span class="hint">Any LUD-16 address works.</span>
+        </div>
+      </div>
+
+      <div style="flex:1"></div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="go(2)">← Back</button>
+        <button class="btn btn-next" onclick="go(4)">Next →</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Review -->
+    <div class="step-panel" id="panel-4">
+      <div class="step-title">Review & Install</div>
+      <div class="step-desc">
+        These are your choices. Review them. When you confirm, the node will be
+        configured.
+      </div>
+      <div class="review-list" id="reviewList">
+        <!-- populated by JS -->
+      </div>
+      <div style="flex:1"></div>
+      <div class="nav">
+        <button class="btn btn-back" onclick="go(3)">← Back</button>
+        <button class="btn btn-install" onclick="install()">✓ Install Node</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Done -->
+    <div class="step-panel" id="panel-5">
+      <div class="done-icon">⚡</div>
+      <div class="done-title">Node configured.</div>
+      <div class="done-desc">
+        Your AMTP node is ready. Your address is sovereign. Your identity belongs
+        to no one but you.
+      </div>
+      <div class="genesis-quote">
+        "The first message is sent with 21 satoshis, so the protocol does not merely
+        describe a life — it proves one."
+      </div>
+      <div id="doneAddress" style="text-align:center;font-family:monospace;color:var(--accent);font-size:16px;margin-top:8px"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  let currentStep = 0;
+  let lightningChoice = null;
+
+  const state = {
+    npub: null, nsec: null,
+    name: '', domain: '',
+    lightningType: null,
+    lightningValue: null,
+  };
+
+  // ── Navigation ──────────────────────────────────────────────
+  function go(step) {
+    const panels = document.querySelectorAll('.step-panel');
+    const items  = document.querySelectorAll('.step-item');
+
+    panels.forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('panel-' + step);
+    if (target) target.classList.add('active');
+
+    items.forEach((item, i) => {
+      item.classList.remove('active', 'done');
+      if (i < step) {
+        item.classList.add('done');
+        item.querySelector('.step-dot').textContent = '';
+      } else if (i === step) {
+        item.classList.add('active');
+        item.querySelector('.step-dot').textContent = i + 1;
+      } else {
+        item.querySelector('.step-dot').textContent = i + 1;
+      }
+    });
+
+    if (step === 4) buildReview();
+    currentStep = step;
+  }
+
+  // ── Keypair ──────────────────────────────────────────────────
+  function generateKeypair() {
+    // Generate a random 32-byte key (hex) — in production use a real secp256k1 lib
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    const hex = Array.from(bytes).map(b => b.toString(16).padStart(2,'0')).join('');
+    state.nsec = 'nsec1' + btoa(hex).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_').slice(0,58);
+    state.npub = 'npub1' + hex.slice(0, 58);
+    document.getElementById('npubVal').textContent = state.npub;
+    document.getElementById('nsecVal').textContent = '••• (hidden — stored locally)';
+    document.getElementById('nsecInput').value = '';
+  }
+
+  function importNsec(val) {
+    if (val.startsWith('nsec1') && val.length > 10) {
+      state.nsec = val;
+      state.npub = 'npub1' + val.slice(5, 63);
+      document.getElementById('npubVal').textContent = state.npub;
+      document.getElementById('nsecVal').textContent = '••• (imported)';
+    }
+  }
+
+  // ── Address preview ─────────────────────────────────────────
+  function updatePreview() {
+    state.name   = document.getElementById('addrName')?.value   || '';
+    state.domain = document.getElementById('addrDomain')?.value || '';
+    const preview = document.getElementById('addrPreview');
+    if (preview) {
+      preview.textContent = (state.name && state.domain)
+        ? state.name + '@' + state.domain
+        : '—';
+    }
+  }
+
+  // ── Lightning choice ─────────────────────────────────────────
+  function selectLightning(type) {
+    lightningChoice = type;
+    state.lightningType = type;
+    document.getElementById('card-selfhosted').classList.toggle('selected', type === 'selfhosted');
+    document.getElementById('card-custodial').classList.toggle('selected',  type === 'custodial');
+    document.getElementById('form-selfhosted').classList.toggle('visible',  type === 'selfhosted');
+    document.getElementById('form-custodial').classList.toggle('visible',   type === 'custodial');
+  }
+
+  // ── Review ───────────────────────────────────────────────────
+  function buildReview() {
+    state.name   = document.getElementById('addrName')?.value   || '—';
+    state.domain = document.getElementById('addrDomain')?.value || '—';
+
+    let lnDisplay = '—';
+    if (state.lightningType === 'selfhosted') {
+      const backend = document.getElementById('lnBackend')?.value || '';
+      const url     = document.getElementById('lnUrl')?.value     || '';
+      lnDisplay = backend.toUpperCase() + ' — ' + (url || '(url not set)');
+    } else if (state.lightningType === 'custodial') {
+      lnDisplay = document.getElementById('custodialAddr')?.value || '(address not set)';
+    }
+
+    const rows = [
+      { label: 'Identity',          value: state.npub || '(no keypair generated)' },
+      { label: 'AMTP Address',      value: state.name + '@' + state.domain },
+      { label: 'Lightning Binding', value: (state.lightningType || '(not chosen)') + ' · ' + lnDisplay },
+      { label: 'Spec Version',      value: 'AMTP v0.1' },
+    ];
+
+    const list = document.getElementById('reviewList');
+    list.innerHTML = rows.map(r => `
+      <div class="review-row">
+        <div class="review-check">✓</div>
+        <div>
+          <div class="review-label">${r.label}</div>
+          <div class="review-value">${r.value}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // ── Install ──────────────────────────────────────────────────
+  function install() {
+    const addr = state.name + '@' + state.domain;
+    document.getElementById('doneAddress').textContent = addr;
+    go(5);
+    // In production: POST config to the node's setup API
+  }
+
+  // Init
+  generateKeypair();
+</script>
+
+</body>
+</html>
