@@ -36,6 +36,13 @@ human in the loop. That means *more* rigor, not less:
    infrastructure is required, no authority decides for the operator. A conforming
    installer presents the choice explicitly and enforces nothing. Sovereignty means
    the individual decides — not the protocol, not the vendor, not the developer.
+8. **The UI is a cockpit, not a wizard.** An AMTP interface shows the full set of
+   controls — nothing is permanently hidden. The AI knows the current state and
+   highlights the controls that are needed *right now* (blinking buttons, accent
+   color, raised weight). The human retains access to everything; the highlight is
+   a suggestion, never a cage. When the suggested action is taken, the highlight
+   clears. This is not minimalism — it is *contextual priority*: full depth,
+   intelligent surface.
 
 ---
 
