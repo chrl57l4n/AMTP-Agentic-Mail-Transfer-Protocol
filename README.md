@@ -3,9 +3,9 @@
 **A mail protocol where one handle is both an address and a wallet.** Identity is
 a key nobody issued and nobody can revoke. Messages can carry value.
 
-No node required to get started. If you have a Lightning address, you already have
-an AMTP address. Run your own node when you want full sovereignty — or don't.
-Open, free, self-hostable.
+Self-hostable by design — your own LNbits or Lightning node is the natural home.
+Custodial Lightning addresses are also fully supported for anyone who wants to
+start without running infrastructure. Open, free, sovereignty is a spectrum.
 
 - **Home:** https://amtp.tech
 - **Status:** v0.1 working draft (skeleton)
@@ -44,15 +44,15 @@ there is no shared, infectable surface. AMTP is free forever.
 
 You do not need to run a Bitcoin node or manage Lightning channels.
 
-**Option A — use an existing Lightning address** (zero setup): if you already have
+**Native path — self-hosted node**: run your own Lightning backend (LNbits, LND,
+CLN, phoenixd, …) and serve `/.well-known/lnurlp/<name>` from your own domain.
+Your key, your wallet, your node. This is what the protocol is built for.
+
+**Accepted path — custodial Lightning address**: if you already have
 `you@walletofsatoshi.com`, `you@getalby.com`, or any LUD-16 address, that *is*
-your AMTP address. Point a domain at it and you have a fully conforming node.
+a valid AMTP binding. No channels, no liquidity credits, zero infrastructure.
 
-**Option B — self-hosted node** (full sovereignty): run your own Lightning backend
-(LND, CLN, phoenixd, LNbits, …) and serve `/.well-known/lnurlp/<name>` from your
-own domain. Maximum control; you carry the liquidity responsibility.
-
-The protocol is identical either way. Sovereignty is a spectrum — pick your point.
+Start where you are. Migrate toward sovereignty when it matters.
 
 ## Lineage
 

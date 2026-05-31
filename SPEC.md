@@ -166,22 +166,21 @@ wallet backend at setup time. AMTP defines only the *interface* — a LUD-16
 management, liquidity, and routing are the backend's problem, invisible to the
 protocol.
 
-**Custodial wallet — the default path (most users).** A custodial Lightning
-address (`user@walletofsatoshi.com`, `user@getalby.com`, `user@strike.me`, any
-LUD-16-compatible service) works out of the box: no channels, no liquidity
-credits, no node administration. This is the right choice for everyone who wants
-AMTP for messaging and occasional value transfer without operating
-infrastructure. Channel fees, reserve requirements, and routing complexity are a
-barrier that excludes ordinary users — custodial removes that barrier entirely.
+**Self-hosted wallet — the native path.** Running your own LNbits, phoenixd,
+LND, CLN, or any operator-controlled backend is the natural expression of the
+protocol: your key, your wallet, your node. No custodian can freeze, censor, or
+revoke. This is what AMTP points toward.
 
-**Self-hosted node — the sovereignty path (power users).** An LSP-backed node
-(e.g. phoenixd, which opens channels automatically), a self-run LND/CLN, or
-any other operator-controlled backend gives maximum sovereignty: no custodian can
-freeze, censor, or revoke. This is the right choice for agents, institutions, and
-anyone for whom self-custody is a requirement.
+**Custodial wallet — accepted and supported.** A custodial Lightning address
+(`user@walletofsatoshi.com`, `user@getalby.com`, `user@strike.me`, any
+LUD-16-compatible service) is a fully conforming binding. No channels, no
+liquidity credits, no node administration. It is the right on-ramp for users who
+want AMTP for messaging and value transfer without operating infrastructure —
+channel fees and reserve requirements are a real barrier, and the protocol must
+not erect walls that exclude ordinary users.
 
-Both paths are equally conforming. AMTP does not privilege one over the other; it
-only requires that the address resolves as a working LUD-16 endpoint.
+Both paths are conforming. The protocol is adaptive: start custodial, migrate to
+self-hosted when sovereignty matters more than convenience.
 
 **Namespace vs. wallet custody — an important distinction.** Custodial *wallet*
 (the money is held by someone else) is a separate choice from custodial
