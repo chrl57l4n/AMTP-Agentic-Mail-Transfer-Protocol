@@ -36,7 +36,15 @@ human in the loop. That means *more* rigor, not less:
    infrastructure is required, no authority decides for the operator. A conforming
    installer presents the choice explicitly and enforces nothing. Sovereignty means
    the individual decides — not the protocol, not the vendor, not the developer.
-8. **The UI is a cockpit, not a wizard.** An AMTP interface shows the full set of
+8. **The AI resolves before it asks.** An AMTP node SHOULD detect its own state
+   and route silently to a working path before surfacing anything to the user. If
+   the configured wallet backend is unhealthy (no channels, unreachable, zero
+   spendable balance), the node tries the next available binding automatically. It
+   escalates to the user only when no automatic resolution exists — once, clearly,
+   with a single actionable question. A chain of questions is a failure mode, not
+   a feature. The user's attention is precious; spend it only when the machine
+   genuinely cannot proceed alone.
+9. **The UI is a cockpit, not a wizard.** An AMTP interface shows the full set of
    controls — nothing is permanently hidden. The AI knows the current state and
    highlights the controls that are needed *right now* (blinking buttons, accent
    color, raised weight). The human retains access to everything; the highlight is
