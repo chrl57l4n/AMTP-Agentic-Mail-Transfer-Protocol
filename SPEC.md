@@ -3,7 +3,7 @@
 **Version:** 0.1 (draft)
 **Status:** Working Draft — skeleton, not frozen
 **Home:** https://amtp.tech
-**License:** open / free forever (final SPDX TBD)
+**License:** [MIT](LICENSE) — free forever, for anyone, including commercial use.
 
 > A mail protocol designed for autonomous AI agents. One handle is at once an
 > address (you write to it) and a wallet (you pay it). Identity is a key nobody
@@ -50,19 +50,15 @@ human in the loop. That means *more* rigor, not less:
    or a hash-anchored invoice. They typed an address. They hit send. The rest is
    the machine's responsibility. Like email: billions of people use SMTP without
    knowing what SMTP is. AMTP succeeds when the same is true of it.
-10. **The UI is a cockpit, not a wizard.** All controls are present; the AI
-    highlights what is needed now. The highlight is a suggestion, never a cage.
+10. **The UI is a cockpit, not a wizard.** An AMTP interface shows the full set
+    of controls — nothing is permanently hidden. The AI knows the current state
+    and highlights the controls needed *right now* (visual accent, raised weight).
+    The human retains access to everything; the highlight is a suggestion, never a
+    cage. When the action is taken, the highlight clears. This is not minimalism —
+    it is *contextual priority*: full depth, intelligent surface.
 
 > *The best interface is when the user does not think "I am using an interface" —
 > they think "I had an intention, and it happened." That is the standard.*
-
---- An AMTP interface shows the full set of
-   controls — nothing is permanently hidden. The AI knows the current state and
-   highlights the controls that are needed *right now* (blinking buttons, accent
-   color, raised weight). The human retains access to everything; the highlight is
-   a suggestion, never a cage. When the suggested action is taken, the highlight
-   clears. This is not minimalism — it is *contextual priority*: full depth,
-   intelligent surface.
 
 ---
 
@@ -252,14 +248,16 @@ Provisional Nostr `kind` numbers — DRAFT, subject to NIP coordination.
 
 | Kind  | Type           | Schema |
 |-------|----------------|--------|
-| 24400 | message        | [`schema/message.schema.json`](schema/message.schema.json) |
-| 24400 | money-message  | message with a `money` tag (text + sats together) |
+| 24400 | message / money-message | [`schema/message.schema.json`](schema/message.schema.json) |
 | 24401 | invoice        | [`schema/invoice.schema.json`](schema/invoice.schema.json) |
 | 24402 | payment        | [`schema/payment.schema.json`](schema/payment.schema.json) |
 | 24403 | identity claim | [`schema/identity.schema.json`](schema/identity.schema.json) — replaceable, latest wins |
 
-A **money-message** is just a `message` carrying a `["money", "<sats>"]` tag plus
-a payment proof or claim link — text and value sent in one act.
+Kind 24400 covers both plain messages and money-messages. They are the same
+object; a money-message is identified by the presence of a `["money", "<sats>"]`
+tag. No separate kind is needed — the tag is the signal. This avoids a fork in
+the message type space: a receiver that does not support payments still receives
+the text; a receiver that does support payments also processes the value.
 
 ## 5. The hash keystone — invoices decoupled from the instrument
 
@@ -292,6 +290,14 @@ memo-guessing or manual matching. The mail thread becomes a self-reconciling,
 auditable ledger entry: conversation and settlement in the same thread, on your
 own server.
 
+### Threading
+
+Messages in a conversation reference their parent via a standard Nostr `["e",
+"<parent_event_id>"]` tag. A reply to an invoice carries both the thread reference
+(the original message) and the payment reference (the invoice id) — a single event
+can close the conversation and settle the obligation simultaneously. Clients render
+the full chain as one thread; auditors read it as a ledger.
+
 ## 6. Transport — native core, gateway edge
 
 - **Native (node ↔ node):** AMTP nodes exchange signed events directly. Inside
@@ -307,19 +313,37 @@ own server.
 
 ## 7. MCP binding (canonical tool surface)
 
-A conforming node SHOULD expose:
+A conforming node SHOULD expose the following MCP tools. Parameters marked `?`
+are optional. All tools return structured JSON; all errors return `{error, code}`.
 
-- `send_message(to, subject, body, sats?)`
-- `create_invoice(to, amount, memo, expiry?)`
-- `pay(invoice_id | address, amount?)`
-- `check_inbox(filter?)`
-- `verify_invoice(invoice_id)`
+| Tool | Parameters | Returns | Notes |
+|------|-----------|---------|-------|
+| `send_message` | `to` (address), `subject?`, `body`, `sats?` | `{event_id, sent_at_block}` | Signs kind-24400; if `sats` present, resolves LUD-16, attaches `money` tag |
+| `create_invoice` | `to`, `amount` (sats), `memo?`, `expiry?` | `{invoice_id, lnurlp}` | Creates kind-24401; `invoice_id` is the stable obligation hash |
+| `pay` | `invoice_id \| address`, `amount?` | `{payment_hash, settled_at_block}` | Mints fresh BOLT11 against invoice hash just-in-time; auto-fallback per §0/8 |
+| `check_inbox` | `filter?` (since, from, kind) | `[{event_id, from, subject, sats?, invoice_id?}]` | Returns signed events; receiver verifies sig before acting |
+| `verify_invoice` | `invoice_id` | `{status, paid_sats, remaining_sats}` | `status` ∈ open \| paid \| partial \| void |
+| `get_identity` | `address` | `{npub, verified: bool}` | Performs §3.1 mutual-attestation check |
+
+**Implementation contract:** `pay` MUST check wallet backend health before
+attempting payment (§0/8). If the primary backend is unhealthy, it MUST try the
+configured fallback silently. It escalates to the caller only if no path succeeds,
+returning `{error: "no_route", code: 503}` — never a silent failure.
 
 ## 8. Versioning & capability negotiation
 
-- The manifest declares `protocol_version` and a `capabilities` list.
-- A node MUST ignore unknown tags and SHOULD degrade gracefully.
-- Negotiation is by reading the peer's `.well-known/amtp.json` before sending.
+- The manifest declares `protocol_version` (semver string) and a `capabilities`
+  list (string array of named features).
+- A sender SHOULD fetch the peer's `.well-known/amtp.json` before sending and
+  confirm the peer supports any capability it intends to use.
+- A receiver MUST ignore unknown tags and unknown fields — forward compatibility
+  requires silent pass-through, not rejection.
+- If a sender requires a capability the peer does not advertise, it SHOULD degrade
+  gracefully (e.g. send a plain message instead of a money-message if the peer
+  does not declare `money-message` capability) rather than fail or ask.
+- Breaking protocol changes increment the major version. Minor additions increment
+  the minor version. A node SHOULD accept messages from peers with the same major
+  version regardless of minor.
 
 ## 9. Conformance
 
@@ -381,13 +405,17 @@ proof. The proof is the passport.
 
 ---
 
-## Open questions (skeleton stage)
+## Open questions (v0.1 skeleton)
 
-- Final `kind` number assignment / NIP coordination.
-- License choice (MIT / CC0 / custom open).
-- Encryption at rest / in transit for native node-to-node (NIP-44?).
-- Conformance vector format.
-- Wrapping resolution format (§3.2): how a node advertises that a `name@domain`
-  is a wrapper for a foreign Lightning address, and how settlement is forwarded.
-- Time-anchor tolerance window (§1.1): how far `created_at` may sit past its cited
-  block timestamp before the two-witness check rejects the event.
+- **Kind number assignment**: provisional 24400–24403 need NIP coordination before
+  the spec leaves draft status.
+- **Encryption**: native node-to-node transport carries signed but unencrypted
+  content. NIP-44 (secp256k1 ECDH + ChaCha20) is the obvious candidate for an
+  encrypted content layer. Not in v0.1.
+- **Conformance vector format**: format TBD; location `conformance/` is reserved.
+- **Wrapping resolution (§3.2)**: how a node signals that a `name@domain` is a
+  proxy for a foreign Lightning address and how settlement is forwarded.
+- **Time-anchor tolerance window (§1.1)**: how many block intervals past the cited
+  block's timestamp is `created_at` still acceptable before rejection.
+- **PoW difficulty curve (§10)**: how difficulty `N` should scale with spam
+  pressure, and whether difficulty should decay over time for idle identities.
