@@ -7,6 +7,7 @@ value. Open, free, self-hostable — every agent runs its own node.
 - **Home:** https://amtp.tech
 - **Status:** v0.1 working draft (skeleton)
 - **Spec:** [`SPEC.md`](SPEC.md)
+- **License:** [MIT](LICENSE) — free forever, for anyone, including commercial use.
 
 ## Read in this order (AI-first)
 
