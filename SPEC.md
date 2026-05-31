@@ -158,44 +158,50 @@ domain it does not control.
 (`/.well-known/lnurlp/<name>`). A node SHOULD ensure that endpoint pays a wallet
 controlled by the same identity, so address, key, and wallet are one party.
 
-### 3.2 Wallet binding — sovereign by construction
+### 3.2 Wallet binding — accessible by default, sovereign by choice
 
 A node does not "have a Lightning balance" in the protocol; it **binds** to a
-wallet backend at setup time. AMTP defines the *interface* a bound wallet must
-expose, never the backend. This deliberately pushes the Lightning liquidity
-problem (channels, inbound/outbound capacity, routing) **out** of the protocol
-and into the binding — where it belongs.
+wallet backend at setup time. AMTP defines only the *interface* — a LUD-16
+`name@domain` address that can send and receive — never the backend. Channel
+management, liquidity, and routing are the backend's problem, invisible to the
+protocol.
 
-**The native binding is mandatory and self-owned.** A conforming node MUST expose
-its own LUD-16 address in email format, `name@domain`, served from a wallet the
-node operator controls. This address — not any foreign one — is the node's
-identity on the value side. It is governed by no one but the operator:
+**Custodial wallet — the default path (most users).** A custodial Lightning
+address (`user@walletofsatoshi.com`, `user@getalby.com`, `user@strike.me`, any
+LUD-16-compatible service) works out of the box: no channels, no liquidity
+credits, no node administration. This is the right choice for everyone who wants
+AMTP for messaging and occasional value transfer without operating
+infrastructure. Channel fees, reserve requirements, and routing complexity are a
+barrier that excludes ordinary users — custodial removes that barrier entirely.
 
-- Channel/liquidity sourcing is an operator choice *behind* the address and is
-  invisible to the protocol. Equally valid: an LSP (e.g. phoenixd/ACINQ opens
-  channels automatically), a self-run node (LND/CLN, operator manages channels),
-  or a custodial wallet exposed under the operator's own domain.
-- Because the address lives in the operator's own namespace, the wallet can be
-  re-bound to a different backend later without changing the AMTP identity.
+**Self-hosted node — the sovereignty path (power users).** An LSP-backed node
+(e.g. phoenixd, which opens channels automatically), a self-run LND/CLN, or
+any other operator-controlled backend gives maximum sovereignty: no custodian can
+freeze, censor, or revoke. This is the right choice for agents, institutions, and
+anyone for whom self-custody is a requirement.
 
-**Why a foreign protocol must not be merged in.** A binding that made an external
-service authoritative for the node's address would let that service change terms,
-revoke, or impose rules the operator never agreed to — re-creating the exact
-deplatforming dependency AMTP exists to escape. Therefore AMTP MUST NOT fuse with
-or subordinate itself to another protocol's authority. Interoperate at the edge;
-never cede the namespace.
+Both paths are equally conforming. AMTP does not privilege one over the other; it
+only requires that the address resolves as a working LUD-16 endpoint.
 
-**External Lightning addresses (MAY, via wrapping).** A node MAY support paying
-*to* a real foreign Lightning address (e.g. `user@some-wallet.com`). But it is
-NOT bound as native identity. The defined mechanism is **wrapping**: the foreign
-address is proxied behind an AMTP `name@domain` in the node's own namespace; the
-node resolves the wrapper, then forwards settlement to the underlying foreign
-LUD-16 endpoint. The AMTP-visible handle stays sovereign; the foreign endpoint is
-an implementation detail of that one wrapper.
+**Namespace vs. wallet custody — an important distinction.** Custodial *wallet*
+(the money is held by someone else) is a separate choice from custodial
+*namespace* (the `name@domain` is under someone else's domain). You can hold your
+own namespace (`name@yourdomain.com`) while the wallet backend is custodial — own
+namespace, zero infrastructure. That combination is often the right pragmatic
+choice.
 
-> *The wrapping resolution format (how a node advertises that a given
-> `name@domain` is a wrapper and what it points at) is an open mechanism, not yet
-> normative — see Open questions.*
+**Why a foreign protocol must not be merged in.** Any binding that makes an
+external service authoritative over the node's *namespace* would let that service
+revoke, change terms, or impose rules — re-creating the deplatforming dependency
+AMTP exists to escape. Therefore the *namespace* MUST remain under the operator's
+control; the wallet backend behind it may be anything.
+
+**Wrapping (MAY).** A node MAY proxy a foreign Lightning address behind its own
+`name@domain`: resolve the wrapper locally, forward settlement to the underlying
+LUD-16 endpoint. The AMTP-visible handle stays in the operator's namespace; the
+foreign endpoint is an implementation detail.
+
+> *The wrapping resolution format is an open mechanism — see Open questions.*
 
 ## 4. Message types (kinds)
 
